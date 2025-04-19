@@ -1,0 +1,64 @@
+<!-- frontend/register.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registrar Usuario | Dashboard</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body class="login-body">
+  <div class="login-container">
+    <h2>Registrar Nuevo Usuario</h2>
+    <form id="registroForm">
+      <input type="text" id="nombre" placeholder="Nombre de usuario" required>
+      <input type="password" id="clave" placeholder="Contraseña" required>
+      <select id="rol" required>
+        <option value="">Selecciona un rol</option>
+        <option value="administrador">Administrador</option>
+        <option value="viewer">Visualizador</option>
+      </select>
+      <button type="submit">Registrar</button>
+    </form>
+    <div id="mensajeRegistro" class="error-msg"></div>
+    <a href="index.html" class="back-link">← Volver al dashboard</a>
+    <footer>
+      <img src="assets/deer-logo.png" alt="Deer" height="40">
+      <img src="assets/id-logo.png" alt="ID" height="40">
+      <p>© 2025 Gaviria Inc. Todos los derechos reservados.<br>
+      Desarrollado por Albert Gaviria | Deer Grupo Empresarial OD</p>
+    </footer>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const usuarioActual = JSON.parse(localStorage.getItem("usuario") || "{}");
+    const form = document.getElementById("registroForm");
+
+    if (!token || usuarioActual.rol !== "administrador") {
+      alert("Acceso denegado.");
+      window.location.href = "login.html";
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("nombre").value;
+      const clave = document.getElementById("clave").value;
+      const rol = document.getElementById("rol").value;
+
+      const res = await fetch("http://localhost:3005/api/usuarios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token
+        },
+        body: JSON.stringify({ nombre, clave, rol })
+      });
+
+      const data = await res.json();
+      document.getElementById("mensajeRegistro").innerText =
+        res.ok ? "Usuario registrado con éxito ✅" : (data.mensaje || "Error al registrar");
+    });
+  </script>
+</body>
+</html>

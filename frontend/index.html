@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Vuelos</title>
+  <!-- DataTables & Buttons CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" />
+  <!-- Select2 -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- SweetAlert2 & Toastr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body class="theme-light" aria-live="polite">
+  <div id="mainContent">
+  <header class="navbar" role="banner">
+    <div class="logo-container">
+      <img src="assets/deer-logo-removebg-preview.png" alt="Deer Grupo Empresarial OD" class="logo deer" />
+      <img src="assets/id-logo.png" alt="I+D Soluciones Agropecuarias" class="logo id" />
+    </div>
+    <div class="user-info" role="navigation">
+      <span id="userNameDisplay"></span>
+      <span class="last-update">Última actualización: <strong id="ultimaActualizacion"></strong></span>
+      <button class="btn btn-logout" onclick="cerrarSesion()" aria-label="Cerrar sesión">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+      <button id="themeToggle" class="btn btn-toggle" aria-label="Alternar modo oscuro/claro">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button id="settingsToggle" class="btn btn-toggle ml-2" aria-label="Abrir configuración">
+        <i class="fas fa-cog"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <section class="filters" aria-label="Filtros de Vuelos">
+    <div class="filter-item">
+      <label for="filtroUsuario">Usuario</label>
+      <select id="filtroUsuario" aria-controls="tablaVuelos"></select>
+    </div>
+    <div class="filter-item">
+      <label for="filtroTipoProceso">Proceso</label>
+      <select id="filtroTipoProceso" aria-controls="tablaVuelos"></select>
+    </div>
+    <div class="filter-item">
+      <label for="filtroCheck">Check</label>
+      <select id="filtroCheck" aria-controls="tablaVuelos"></select>
+    </div>
+    <div class="filter-item">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" aria-controls="tablaVuelos"></select>
+    </div>
+    <div class="filter-range">
+      <label for="fechaDesde">Desde</label>
+      <input type="date" id="fechaDesde" />
+    </div>
+    <div class="filter-range">
+      <label for="fechaHasta">Hasta</label>
+      <input type="date" id="fechaHasta" />
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-clear" id="limpiarFiltros"><i class="fas fa-broom"></i> Limpiar</button>
+    </div>
+  </section>
+
+  <!-- KPI Cards -->
+  <section class="kpis" aria-label="Indicadores clave">
+    <div class="kpi-card" id="totalVuelos">
+      <h2>Total Vuelos</h2><p><strong>0</strong></p>
+    </div>
+    <div class="kpi-card" id="finalizados">
+      <h2>Finalizados</h2><p><strong>0</strong></p>
+    </div>
+    <div class="kpi-card" id="enProceso">
+      <h2>En Proceso</h2><p><strong>0</strong></p>
+    </div>
+    <div class="kpi-card" id="pendientes">
+      <h2>Pendientes</h2><p><strong>0</strong></p>
+    </div>
+    <div class="kpi-card" id="avanceGlobal">
+      <h2>Avance Global</h2><p><strong>0%</strong></p>
+    </div>
+  </section>
+
+  <!-- Charts -->
+  <section class="charts" aria-label="Gráficos de desempeño">
+    <div class="chart-container">
+      <canvas id="chartAvance"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="chartComparativa"></canvas>
+    </div>
+  </section>
+
+  <!-- Table -->
+  <main class="table-container" aria-label="Tabla de vuelos">
+    <table id="tablaVuelos" class="display nowrap" style="width:100%" role="grid">
+      <thead>
+        <tr>
+          <th>Vuelo</th><th>Lotes</th><th>%</th><th>Total Has</th>
+          <th>Usuario</th><th>Proceso</th><th>Check</th>
+          <th>Procesados</th><th>% Fin</th><th>% Und</th>
+          <th>Pendientes</th><th>% Pend</th><th>Estado</th><th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <!-- Loader Overlay -->
+  <div id="loader" class="loader-overlay" aria-hidden="true">
+    <img src="assets/loader.gif" alt="Cargando..." />
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-logos">
+      <img src="assets/deer-logo-removebg-preview.png" alt="Deer Logo" class="logo deer" />
+      <img src="assets/id-logo.png" alt="I+D Logo" class="logo id" />
+    </div>
+    <p>© 2025 Gaviria Inc. Todos derechos reservados.<br />Desarrollado por Albert Gaviria</p>
+  </footer>
+
+    </div> <!-- /#mainContent -->
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal modal-center" role="dialog" aria-modal="true">
+    <div class="modal-content settings-content">
+      <header class="modal-header">
+        <h2>Configuración</h2>
+        <button id="settingsClose" class="btn btn-close" aria-label="Cerrar configuración">
+          <i class="fas fa-times"></i>
+        </button>
+      </header>
+      <section class="modal-body">
+        <div class="setting-grid">
+          <div class="setting-item">
+            <label for="settingDateFormat">Formato de fecha</label>
+            <select id="settingDateFormat">
+              <option value="DD/MM/YYYY">DD/MM/AAAA</option>
+              <option value="MM/DD/YYYY">MM/DD/AAAA</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label for="settingPageLength">Filas por página</label>
+            <select id="settingPageLength">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label for="settingLanguage">Idioma</label>
+            <select id="settingLanguage">
+              <option value="es-CO">Español</option>
+              <option value="en-US">Inglés</option>
+            </select>
+          </div>
+        </div>
+      </section>
+      <footer class="modal-footer">
+        <button id="settingsSave" class="btn btn-primary">Guardar</button>
+        <button id="settingsCancel" class="btn btn-clear">Cancelar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Core JS -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="assets/settings.js"></script>
+  <script src="assets/dashboard.js"></script>
+  <script>
+    document.getElementById("ultimaActualizacion").textContent = new Date().toLocaleString('es-CO');
+    $(() => { $('#filtroUsuario, #filtroTipoProceso, #filtroCheck, #filtroEstado').select2({ width: '100%' }); });
+
+    const mainContent = document.getElementById('mainContent');
+    const settingsModal = document.getElementById('settingsModal');
+    document.getElementById('settingsToggle').addEventListener('click', () => {
+      settingsModal.classList.add('active');
+      mainContent.inert = true;
+      settingsModal.querySelector('select').focus();
+    });
+    ['settingsClose','settingsCancel'].forEach(id => {
+      document.getElementById(id).addEventListener('click', () => {
+        settingsModal.classList.remove('active');
+        mainContent.inert = false;
+        document.getElementById('settingsToggle').focus();
+      });
+    });
+  </script>
+</body>
+</html>

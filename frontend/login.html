@@ -1,0 +1,53 @@
+<!-- frontend/login.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iniciar Sesión | Dashboard Vuelos</title>
+  <link rel="stylesheet" href="assets/style.css"/>
+</head>
+<body class="login-body">
+  <div class="login-container">
+    <h2>Bienvenido</h2>
+    <form id="loginForm">
+      <input type="text" id="nombre" placeholder="Usuario" required>
+      <input type="password" id="clave" placeholder="Contraseña" required>
+      <button type="submit">Ingresar</button>
+    </form>
+    <div id="mensajeError" class="error-msg"></div>
+    <footer>
+      <img src="assets/deer-logo.png" alt="Deer" height="40">
+      <img src="assets/id-logo.png" alt="ID" height="40">
+      <p>© 2025 Gaviria Inc. Todos los derechos reservados.<br>
+      Desarrollado por Albert Gaviria | Deer Grupo Empresarial OD</p>
+    </footer>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const usuario = document.getElementById("usuario").value;
+      const clave = document.getElementById("clave").value;
+
+      const response = await fetch("http://localhost:3005/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: usuario, clave })
+      });
+
+      const data = await response.json();
+
+      if (data.auth) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("usuario", JSON.stringify(data.usuario));
+        window.location.href = "index.html";
+      } else {
+        document.getElementById("mensajeError").innerText = data.mensaje || "Acceso denegado";
+      }
+    });
+  </script>
+  <script src="assets/login.js"></script>
+</body>
+</html>
